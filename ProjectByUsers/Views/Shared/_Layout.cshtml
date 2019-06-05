@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PROJECTS BY USER</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    
+    <div class="container">
+
+        <BR>
+        
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    
+
+    @RenderSection("Scripts", required: false)
+    
+    <script>
+
+        $(document).ready(function() {
+
+            function getUsers () {
+                var url = "https://localhost:5001/api/User";
+                $.get(url).always(showResponse);
+                return false;
+            };
+
+            var showResponse = function (data) {
+
+                var s = '<option value="-1">Please Select an User</option>';  
+                for (var i = 0; i < data.length; i++) {  
+                    s += '<option value="' + data[i].id + '">' + data[i].firstName + ' ' + data[i].lastName + '</option>';  
+                }  
+                $("#UserList").html(s); 
+
+            };
+            
+            getUsers();
+        });
+
+        $("#UserList").change(function(e) {
+
+            var getProjectByUser = function (UserId) {
+                var url = "https://localhost:5001/api/UserProject/" + UserId;
+                $.get(url).always(showResponse);
+                return false;
+            };
+            var showResponse = function (data) {
+
+                var name = data;
+                //Clean the Table
+                $('#ProjectsByUserTable tr').not(':first').remove();
+
+                var TableHTML = "";
+
+                if (data.length > 0) {
+                    jQuery.each(name, function(i,data) {
+                        TableHTML =  "<tr><td>" + data.projectId + "</td>";
+                        TableHTML += "<td>" + FormatDate(data.assignedDate) + "</td>";
+                        TableHTML += "<td>" + FormatDate(data.startDate) + "</td>";
+                        TableHTML += "<td class=\"active\">" + data.timeToStart + "</td>";
+                        TableHTML += "<td>" + FormatDate(data.endDate) + "</td>";
+                        TableHTML += "<td>" + data.credits + "</td>";
+                        TableHTML += "<td class=\"active\">" + data.isActive + "</td>";
+                        $("#ProjectsByUserTable").append(TableHTML);
+                    });
+                } else {
+                    TableHTML =  "<tr class=\"text-center\"><td colspan=\"7\">No Result</td>";
+                    $("#ProjectsByUserTable").append(TableHTML);
+                }
+                    
+            };
+
+            getProjectByUser(this.value);
+        });
+
+        function FormatDate(_date) {
+            var datetoformat = new Date(_date)
+            return (datetoformat.getMonth() + 1).toString() + '/' + datetoformat.getDate().toString() + '/' +  datetoformat.getFullYear().toString();
+        }
+       
+    </script>
+
+</body>
+</html>
